@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Location Manager</title>
+    <!-- Tailwind Play CDN for quick styling (development only) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Small animation utilities for the demo (kept simple for CDN use) */
+      @keyframes lm-fade-in {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes lm-slide-up {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .lm-fade-in { animation: lm-fade-in 260ms ease-out both; }
+      .lm-slide-up { animation: lm-slide-up 320ms cubic-bezier(.2,.8,.2,1) both; }
+      /* small focus ring improvement for keyboard users */
+      .lm-focus:focus { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.18); }
+    </style>
+  </head>
+  <body class="antialiased bg-gray-100 font-sans">
+    <div id="root"></div>
+
+    <!-- React (UMD) and Babel for in-browser JSX transform (development only) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- App script (transformed by Babel in the browser) -->
+    <script type="text/babel" data-type="module" src="app.js"></script>
+  </body>
+</html>
