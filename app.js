@@ -630,6 +630,79 @@ const SettingsPanel = ({ locations, setLocations, customFields = [], setCustomFi
     event.target.value = null;
   };
 
+  // Load data from Excel (.xlsx/.xls). Maps common column headers to our app fields.
+  const handleLoadFromExcel = (event) => {
+    setMessage({ type: '', text: '' });
+    const file = event.target.files[0];
+    if (!file) return;
+    // Ensure XLSX global is available
+    if (typeof XLSX === 'undefined') {
+      setMessage({ type: 'error', text: 'Excel parser not available. Ensure xlsx script is loaded in index.html.' });
+      event.target.value = null;
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result;
+        const wb = XLSX.read(data, { type: 'array' });
+        const first = wb.SheetNames && wb.SheetNames[0];
+        if (!first) throw new Error('No sheets found');
+        const ws = wb.Sheets[first];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        const mapped = rows.map(row => {
+          // helper to read multiple possible header variants
+          const r = (k) => row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== '' ? row[k] : undefined;
+          const companyName = r('companyName') || r('Company Name') || r('company') || '';
+          const ownerName = r('ownerName') || r('Owner Name') || r('owner') || '';
+          const address = r('address') || r('Address') || '';
+          const state = r('state') || r('State') || '';
+          const lga = r('lga') || r('LGA') || '';
+          const partnerType = r('partnerType') || r('Partner Type') || r('partner') || '';
+          const email = r('email') || r('Email') || '';
+          const phone = r('phone') || r('Phone') || '';
+          const id = r('id') || r('ID') || `id-${Date.now()}-${Math.floor(Math.random()*10000)}`;
+          const createdAt = r('createdAt') || r('Created At') || new Date().toISOString();
+
+          // copy any other columns as custom fields (normalize keys)
+          const baseKeys = new Set(['id','ID','companyName','Company Name','company','ownerName','Owner Name','owner','address','Address','state','State','lga','LGA','partnerType','Partner Type','partner','email','Email','phone','Phone','createdAt','Created At']);
+          const extras = {};
+          Object.keys(row).forEach(k => {
+            if (!baseKeys.has(k)) {
+              const key = k.replace(/\s+/g, '_');
+              extras[key] = row[k];
+            }
+          });
+
+          return {
+            id,
+            createdAt,
+            companyName,
+            ownerName,
+            address,
+            state,
+            lga,
+            partnerType,
+            email,
+            phone,
+            ...extras
+          };
+        });
+
+        if (!Array.isArray(mapped)) throw new Error('No rows parsed');
+        setLocations(mapped);
+        setMessage({ type: 'success', text: `Successfully loaded ${mapped.length} rows from Excel.` });
+      } catch (err) {
+        console.error('Failed to parse Excel:', err);
+        setMessage({ type: 'error', text: 'Failed to parse Excel file. Ensure it is a valid .xlsx or .xls file.' });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = null;
+  };
+
   const StatusDisplay = () => {
     if (!message.text) return null;
     const isError = message.type === 'error';
@@ -648,6 +721,7 @@ const SettingsPanel = ({ locations, setLocations, customFields = [], setCustomFi
             <button onClick={handleSaveToFile} className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150"><Save className="w-5 h-5 mr-2" /> Save Data to Text File</button>
             <button onClick={handleExportToCSV} className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150"><Save className="w-5 h-5 mr-2" /> Export to Excel (.csv)</button>
             <label className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 cursor-pointer"><FileUp className="w-5 h-5 mr-2" /> Load Data from Text File<input type="file" className="hidden" accept=".json" onChange={handleLoadFromFile} /></label>
+            <label className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 cursor-pointer"><FileUp className="w-5 h-5 mr-2" /> Load Data from Excel (.xlsx/.xls)<input type="file" className="hidden" accept=".xlsx,.xls" onChange={handleLoadFromExcel} /></label>
           </div>
         {/* Custom Fields Manager */}
         <div className="mt-4 border-t pt-4">
