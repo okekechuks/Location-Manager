@@ -20,7 +20,7 @@ const Save = (props) => <Icon {...props}>💾</Icon>;
 const FileUp = (props) => <Icon {...props}>📤</Icon>;
 
 // --- Helper Components ---
-const AccordionItem = ({ state, locations, onDeleteLocation, customFields }) => {
+const AccordionItem = ({ state, locations, onDeleteLocation, customFields, onUpdateLocation }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -37,7 +37,7 @@ const AccordionItem = ({ state, locations, onDeleteLocation, customFields }) => 
       {isOpen && (
         <div className="p-4 space-y-4 border-t border-gray-200">
           {locations.map((loc, idx) => (
-            <LocationCard key={loc.id} loc={loc} onDeleteLocation={onDeleteLocation} customFields={customFields} style={{ animationDelay: `${idx * 40}ms` }} />
+            <LocationCard key={loc.id} loc={loc} onDeleteLocation={onDeleteLocation} onUpdateLocation={onUpdateLocation} customFields={customFields} style={{ animationDelay: `${idx * 40}ms` }} />
           ))}
         </div>
       )}
@@ -123,7 +123,7 @@ const ViewLocations = ({ locations = [], onDeleteLocation, customFields = [], on
           <p className="text-gray-500 italic p-4 bg-yellow-50 rounded-lg">No locations match your search criteria.</p>
         ) : (
           sortedStates.map(state => (
-            <AccordionItem key={state} state={state} locations={groupedAndFilteredLocations[state]} onDeleteLocation={onDeleteLocation} customFields={customFields} />
+            <AccordionItem key={state} state={state} locations={groupedAndFilteredLocations[state]} onDeleteLocation={onDeleteLocation} customFields={customFields} onUpdateLocation={onUpdateLocation} />
           ))
         )}
       </div>
@@ -551,7 +551,7 @@ const SettingsPanel = ({ locations, setLocations, customFields = [], setCustomFi
       setMessage({ type: 'error', text: 'Failed to save file.' });
     }
   };
-
+// I AM A BOY
   // Export locations (including customFields) to CSV for Excel
   const handleExportToCSV = () => {
     setMessage({ type: '', text: '' });
