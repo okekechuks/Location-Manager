@@ -1,5 +1,38 @@
 // Lightweight browser-ready React app (no external icon deps). Uses global React and ReactDOM.
-const { useState, useEffect, useCallback, useMemo } = React;
+const { useState, useEffect, useCallback, useMemo, Component } = React;
+
+// Simple ErrorBoundary to catch rendering/runtime errors and display a friendly message
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, info: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Uncaught error in React tree:', error, info);
+    this.setState({ info });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-red-600">Something went wrong</h2>
+          <p className="mt-2 text-gray-700">An unexpected error occurred while rendering the application. Check the browser console for details.</p>
+          <details className="mt-4 whitespace-pre-wrap text-sm text-gray-600 p-3 bg-gray-50 border rounded">
+            {String(this.state.error)}
+            {this.state.info && this.state.info.componentStack && '\n\n' + this.state.info.componentStack}
+          </details>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Simple emoji icons to replace lucide-react for browser demo
 const Icon = ({ children, className = '' }) => (
@@ -886,6 +919,10 @@ const App = () => {
   );
 };
 
-// Mount app
+// Mount app (wrapped with ErrorBoundary so hosted runtime errors show a message instead of a blank screen)
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
